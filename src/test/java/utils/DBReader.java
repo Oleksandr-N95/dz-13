@@ -1,9 +1,7 @@
 package utils;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.io.UnsupportedEncodingException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,17 +15,22 @@ public class DBReader {
     private final static String QUERY_UPDATE = "update strings set sureName=? where id=?";
     private final static String QUERY_DELETE = "delete from strings where id=?";
 
-    public static List<String> getNumbersFromDB() {
+    public static List<String> getStringsFromDB() {
         List<String> strings = new ArrayList<>();
 
         try (Connection connection = DriverManager.getConnection(URL, USER_NAME, USER_PASSWORD)) {
-            PreparedStatement preparedStatement = connection.prepareStatement(QUERY_SELECT_ALL);
-            preparedStatement.setString(1, "Sam");
-            preparedStatement.executeUpdate();
+            Statement sqlStatement = connection.createStatement();
+            ResultSet resultSet = sqlStatement.executeQuery(QUERY_SELECT_ALL);
+
+            while (resultSet.next()){
+                String string = new String(resultSet.getNString("name").getBytes(), resultSet.getNString("sureName"));
+            }
 
         } catch (SQLException exception) {
             throw new RuntimeException(String.format("Please check connection string" +
                     ". URL [%s], name [%s], pass [%s]", URL, USER_NAME, USER_PASSWORD));
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
         }
         return strings;
     }
@@ -72,5 +75,9 @@ public class DBReader {
             throw new RuntimeException(String.format("Please check connection string" +
                     ". URL [%s], name [%s], pass [%s]", URL, USER_NAME, USER_PASSWORD));
         }
+    }
+
+    public static void main(String[] args) {
+        getStringsFromDB();
     }
 }
